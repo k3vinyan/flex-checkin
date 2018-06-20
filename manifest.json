@@ -15,11 +15,11 @@
   "content_scripts": [
     {
      "matches": ["http://localhost:8000/drivers/roster*", "*://logistics.amazon.com/internal/capacity/rosterview*"],
-      "js": ["jquery-3.2.1.min.js", "checkin.js"]
+      "js": ["jquery-3.2.1.min.js", "FileSaver.js", "jszip.js", "myexcel.js", "checkin.js"]
     }
   ],
   "background":
   {
-    "scripts": ["jquery-3.2.1.min.js"]
+    "scripts": ["jquery-3.2.1.min.js", "jszip.js", "FileSaver.js", "myexcel.js"]
   }
   }

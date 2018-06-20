@@ -2,6 +2,15 @@ $( document ).ready(function(){
 
   const rosterNode = document.getElementById('cspDATable');
 
+  const buttonPlacement = $('.fp-footer');
+  let today = new Date();
+  let todayFormat = (today.getMonth()+1).toString() + "." + (today.getDay().toString()) + "." + (today.getFullYear().toString());
+
+
+  buttonPlacement.before(
+    optionButton("unplannedButton", "DL Unplanned", "#FFFFFF", "#00cc00", "5px")
+  );
+
   // create an observer instance
   var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
@@ -33,8 +42,9 @@ $( document ).ready(function(){
       let driverBlockTime = $(driver[4]).text();
       let driverStartTime = $(driver[5]).text();
       let driverEndTime = $(driver[6]).text();
+      let shiftLength = $(driver[4]).text()
 
-      driversArray.push({'id': driverId, 'name':driverName, 'blockTime': driverBlockTime, 'startTime': driverStartTime, 'endTime': driverEndTime, 'isNoShow':  undefined, 'isCheckin': undefined, 'isCheckout': undefined, 'checkinTime': null});
+      driversArray.push({'id': driverId, 'name':driverName, 'blockTime': driverBlockTime, 'shiftLength': shiftLength, 'startTime': driverStartTime, 'endTime': driverEndTime, 'isNoShow':  undefined, 'isCheckin': undefined, 'isCheckout': undefined, 'checkinTime': null});
     }
     return driversArray;
   }
@@ -146,7 +156,6 @@ $( document ).ready(function(){
 
 
    function ajaxRequest(roster, callback){
-     console.log(roster)
      $.ajax({
        type: "POST",
        url: "http://localhost:9000/checkin",
@@ -188,7 +197,97 @@ $( document ).ready(function(){
       const bool = $(this).is(":checked");
       const id = $(this).attr('id');
       updateCheckin('noShow', bool, id);
-    })
+    });
   }
+
+  let blockArray = [];
+  let shiftArray = [];
+  let requestArray = [];
+  let acceptedArray = [];
+  let unplannedArray = [];
+  let actualArray = [];
+  let bridgeArray = [];
+
+
+
+  $('#unplannedButton').on('click', function(){
+    const time = prompt("Start Time?", "17:00")
+    $.ajax({
+      type: "POST",
+      url: "http://localhost:9000/checkin/unplannedRoute",
+      data: JSON.stringify({'time': time}),
+      success: function(data){
+        const headers = ['Block Time', 'Shift Length', 'Request', 'Accepted', 'Actual', 'Unplanned Routes', 'Bridge'];
+        const drivers = data;
+        const counter = data.counter;
+        for(let i = 0; i < counter; i++){
+          blockArray.push(data[i].blockTime)
+          shiftArray.push(data[i].shiftLength)
+          acceptedArray.push(data[i].accepted)
+          actualArray.push(data[i].isCheckin)
+        }
+        let allArray = [blockArray, shiftArray, requestArray, acceptedArray, actualArray, unplannedArray, bridgeArray]
+        let newExcel = createExcel(headers);
+        insertDataToExcel("Unplanned Route Report", newExcel, allArray);
+
+        //reset array
+        blockArray = [];
+        shiftArray = [];
+        requestArray = [];
+        acceptedArray = [];
+        unplannedArray = [];
+        actualArray = [];
+        bridgeArray = [];
+      },
+      error: function(data){
+        console.log("An error has occurred.  Please check if server is on....")
+      }
+    })
+  })
+
+  //create excel template
+
+const headers = ['Block Time', 'Shift Length', 'Request', 'Accepted', 'Actual', 'Unplanned Routes', 'Bridge']
+
+function createExcel(headers){
+  const excel = $JExcel.new();
+  excel.set(0,5,undefined,100);
+  const formatHeader = excel.addStyle({border: "none,none,none,thin #551A8B", font: "Calibri 12 #FFFFFF B", fill: "#000000", align: "C C"});
+
+  for(let i=0; i < headers.length; i++){
+    excel.set(0, i, 0, headers[i], formatHeader);
+    excel.set(0, i, undefined, "auto");
+    }
+    return excel;
+}
+
+//insert data into excel file, must create template first
+function insertDataToExcel(name, excel, arrays){
+  let e = excel;
+  for(let i = 1; i < arrays.length + 1; i++){
+    for(let j = 1; j < arrays[i - 1].length + 1; j++){
+      e.set(0, i-1, j, arrays[i - 1][j-1], excel.addStyle( {align:"C C"}));
+    }
+  }
+
+  e.generate(name + " " + todayFormat + ".xlsx");
+}
+
+
+
+  function optionButton(id, value, color, bgColor, padding){
+       var id = id;
+       var value = value;
+       var color = color;
+       var bgColor = bgColor;
+       var padding = padding;
+       var string;
+
+       string = "<input id='" + id + "' type='button' value='" + value +
+         "' style='" +"color: " + color + "; " + "background-color:" + bgColor +
+         "; " + "padding: " + padding + "; border-style: none;'></button>";
+
+         return string;
+   };
 
 });
