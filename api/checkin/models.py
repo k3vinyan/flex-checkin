@@ -15,6 +15,7 @@ class Driver(models.Model):
     endTime     = models.CharField(max_length=10, blank=True)
     isNoShow    = models.BooleanField(blank=True)
     isCheckout  = models.BooleanField(default=False)
+    shiftLength = models.CharField(max_length=20, null=True)
     checkinTime = models.CharField(max_length=20, blank=True, null=True)
     create_at   = models.DateTimeField(auto_now_add=True, null=True)
 
