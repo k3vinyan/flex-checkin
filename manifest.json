@@ -1,0 +1,25 @@
+{
+
+  "manifest_version": 2,
+  "name": "checkin",
+  "version": "1.0",
+
+  "description": "parse data and send to server",
+
+  "icons": {
+    "16": "icon16.png",
+    "128": "icon128.png"
+
+  },
+
+  "content_scripts": [
+    {
+     "matches": ["http://localhost:8000/drivers/roster*", "*://logistics.amazon.com/internal/capacity/rosterview*"],
+      "js": ["jquery-3.2.1.min.js", "checkin.js"]
+    }
+  ],
+  "background":
+  {
+    "scripts": ["jquery-3.2.1.min.js"]
+  }
+  }
