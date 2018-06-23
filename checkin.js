@@ -2,24 +2,32 @@ $( document ).ready(function(){
 
   const rosterNode = document.getElementById('cspDATable');
 
-  const buttonPlacement = $('.fp-footer');
+  const buttonPlacement = $('#cspRoasterView');
   let today = new Date();
   let todayFormat = (today.getMonth()+1).toString() + "." + (today.getDay().toString()) + "." + (today.getFullYear().toString());
 
-
   buttonPlacement.before(
-    optionButton("unplannedButton", "DL Unplanned", "#FFFFFF", "#00cc00", "5px")
+    optionButton("createCheckinButton", "Create Checkin List", "#FFFFFF", "#4c988c", "5px")
+  );
+  buttonPlacement.before(
+    optionButton("unplannedButton", "DL Unplanned", "#FFFFFF", "#6ddac8", "5px")
   );
 
-  // create an observer instance
-  var observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-          console.log(mutation.type);
-          let roster = getRosterData();
-          let allDrivers = ajaxRequest(roster, createTable);
-          //let sortedRoster = sortArray(roster);
-      });
-  });
+
+  $('#createCheckinButton').on("click", function(){
+    console.log("Hi")
+    let roster = getRosterData();
+    let allDrivers = ajaxRequest(roster, createTable);
+  })
+  // work in process!!!!!
+  // var observer = new MutationObserver(function(mutations) {
+  //     mutations.forEach(function(mutation) {
+  //         console.log(mutation.type);
+  //         let roster = getRosterData();
+  //         let allDrivers = ajaxRequest(roster, createTable);
+  //         //let sortedRoster = sortArray(roster);
+  //     });
+  // });
 
   // configuration of the observer:
   var config = { attributes: true, childList: true, characterData: true }
@@ -80,7 +88,7 @@ $( document ).ready(function(){
       }
 
       if(currentStartTime != undefined && currentStartTime != data[i].fields.startTime){
-        $('#bodyDashboardContent').append("<table class='rosterTable'>" + header + "</table>");
+        $('#cspRoasterView').prepend("<table class='rosterTable'>" + header + "</table>");
         header = "<tr><th><h1>Start Time</h1></th><th><h1>Name</h1></th><th><h1>Checkin</h1></th><th><h1>No Show</h1></th></tr>"
         currentStartTime = data[i].fields.startTime;
       } else if(currentStartTime === undefined){
@@ -109,7 +117,7 @@ $( document ).ready(function(){
     $('.table.rosterTable').css("font-size", "20px");
     $('.table.rosterTable').css("font-family", "Verdana");
     $('tr:nth-child(even)').css("background-color", "#f2f2f2");
-
+    $('h1').css("color", "black");
   }
 
   //sort array by starting time
@@ -273,21 +281,19 @@ function insertDataToExcel(name, excel, arrays){
   e.generate(name + " " + todayFormat + ".xlsx");
 }
 
-
-
   function optionButton(id, value, color, bgColor, padding){
-       var id = id;
-       var value = value;
-       var color = color;
-       var bgColor = bgColor;
-       var padding = padding;
-       var string;
+   var id = id;
+   var value = value;
+   var color = color;
+   var bgColor = bgColor;
+   var padding = padding;
+   var string;
 
-       string = "<input id='" + id + "' type='button' value='" + value +
-         "' style='" +"color: " + color + "; " + "background-color:" + bgColor +
-         "; " + "padding: " + padding + "; border-style: none;'></button>";
+   string = "<input id='" + id + "' type='button' value='" + value +
+     "' style='" +"color: " + color + "; " + "background-color:" + bgColor +
+     "; " + "padding: " + padding + "; border-style: none;'></button>";
 
-         return string;
+  return string;
    };
 
 });
