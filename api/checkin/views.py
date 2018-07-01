@@ -55,7 +55,7 @@ def unplannedRoute(request):
                     if driver.isNoShow == True:
                         block['isNoShow'] += 1
 
-    driversData['counter'] = counter                    
+    driversData['counter'] = counter
     return JsonResponse(driversData)
 
 @csrf_exempt
@@ -66,26 +66,28 @@ def update(request):
 
         if req['type'] == 'checkin':
             if req['boolean'] == True:
-                driver = Driver.objects.get(DPID=req['id'])
+                d = Driver.objects.get(DPID=req['id'])
+                time = req['startTime'] + " " + req['period']
+                driver = Driver.objects.get(DPID=req['id'], startTime=time)
                 driver.isCheckin = True;
                 driver.isNoShow = False;
                 driver.save(update_fields=["isCheckin"])
                 driver.save(update_fields=["isNoShow"])
             else:
-                driver = Driver.objects.get(DPID=req['id'])
+                driver = Driver.objects.get(DPID=req['id'], startTime=time)
                 driver.isCheckin = False;
                 driver.isNoShow = True;
                 driver.save(update_fields=["isCheckin"])
                 driver.save(update_fields=["isNoShow"])
         elif req['type'] == 'noShow':
             if req['boolean'] == True:
-                driver = Driver.objects.get(DPID=req['id'])
+                driver = Driver.objects.get(DPID=req['id'], startTime=time)
                 driver.isCheckin = False;
                 driver.isNoShow = True;
                 driver.save(update_fields=["isCheckin"])
                 driver.save(update_fields=["isNoShow"])
             else:
-                driver = Driver.objects.get(DPID=req['id'])
+                driver = Driver.objects.get(DPID=req['id'], startTime=time)
                 driver.isCheckin = True;
                 driver.isNoShow = False;
                 driver.save(update_fields=["isCheckin"])
@@ -103,12 +105,12 @@ def index(request):
         return HttpResponse(data, content_type='application/json')
 
     if request.method == 'POST':
-        print "well hello there"
+
         req = json.loads(request.body)
-        print req
+
         for driver in req:
             try:
-                Driver.objects.get(DPID=driver['id'])
+                d = Driver.objects.get(DPID=driver['id'], startTime=driver['startTime'])
             except ObjectDoesNotExist:
                 name = driver['name'].split(" ");
                 fullName = driver['name']

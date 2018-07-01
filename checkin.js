@@ -15,7 +15,6 @@ $( document ).ready(function(){
 
 
   $('#createCheckinButton').on("click", function(){
-    console.log("Hi")
     let roster = getRosterData();
     let allDrivers = ajaxRequest(roster, createTable);
   })
@@ -29,11 +28,11 @@ $( document ).ready(function(){
   //     });
   // });
 
-  // configuration of the observer:
-  var config = { attributes: true, childList: true, characterData: true }
-
-  // pass in the target node, as well as the observer options
-  observer.observe(rosterNode, config);
+  // // configuration of the observer:
+  // var config = { attributes: true, childList: true, characterData: true }
+  //
+  // // pass in the target node, as well as the observer options
+  // observer.observe(rosterNode, config);
 
   //scrape and return Roster
   function getRosterData(){
@@ -59,7 +58,7 @@ $( document ).ready(function(){
 
 
   function createTable(data){
-
+    $('#cspRoasterViewHeader').append("<br></br>")
     var header = "<tr><th><h1>Start Time</h1></th><th><h1>Name</h1></th><th><h1>Checkin</h1></th><th><h1>No Show</h1></th></tr>"
     let currentStartTime;
     let checkin = "";
@@ -87,19 +86,30 @@ $( document ).ready(function(){
         noShow = " checked";
       }
 
-      if(currentStartTime != undefined && currentStartTime != data[i].fields.startTime){
-        $('#cspRoasterView').prepend("<table class='rosterTable'>" + header + "</table>");
+      if(currentStartTime === undefined){
+        currentStartTime = data[i].fields.startTime;
+      } else if(currentStartTime != undefined && currentStartTime != data[i].fields.startTime){
+
+        $('#cspRoasterViewHeader').append("<table class='rosterTable'>" + header + "</table>");
         header = "<tr><th><h1>Start Time</h1></th><th><h1>Name</h1></th><th><h1>Checkin</h1></th><th><h1>No Show</h1></th></tr>"
         currentStartTime = data[i].fields.startTime;
-      } else if(currentStartTime === undefined){
-        currentStartTime = data[i].fields.startTime;
       }
+      console.log(data[i].fields.startTime);
+      let temp = (data[i].fields.startTime).split(" ");
+      let time = temp[0];
+      let period = temp[1];
       header += "<tr class=" + rowStyle + ">" +
         "<td>" + data[i].fields.startTime + "</td>" +
         "<td>" + data[i].fields.fullName + "</td>" +
-        "<td><input type='checkbox' class='checkinBox' id=" + data[i].fields.DPID + checkin + "></td>" +
-        "<td><input type='checkbox' class='noShowBox' id=" +  data[i].fields.DPID +  noShow + "></td>" +
+        "<td><input type='checkbox' class='checkinBox' id=" + data[i].fields.DPID + checkin + " data-startTime=" +  time + " data-period=" + period + " ></td>" +
+        "<td><input type='checkbox' class='noShowBox' id=" +  data[i].fields.DPID +  noShow + " data-startTime=" +  time + " data-period=" + period + " ></td>" +
         "</tr>"
+
+      if(i == data.length - 1){
+        $('#cspRoasterViewHeader').append("<table class='rosterTable'>" + header + "</table>");
+        header = "<tr><th><h1>Start Time</h1></th><th><h1>Name</h1></th><th><h1>Checkin</h1></th><th><h1>No Show</h1></th></tr>"
+        currentStartTime = data[i].fields.startTime;
+      }
     }
     addStyle();
     onRosterLoad();
@@ -169,6 +179,7 @@ $( document ).ready(function(){
        url: "http://localhost:9000/checkin",
        data: JSON.stringify(roster),
        success: function(data){
+         console.log(data)
          console.log("request successful!");
          callback(JSON.parse(data));
        },
@@ -178,8 +189,8 @@ $( document ).ready(function(){
      });
    }
 
-  function updateCheckin(t, b, i){
-    const value = {type: t, boolean: b, id: i}
+  function updateCheckin(t, b, i, s, p){
+    const value = {type: t, boolean: b, id: i, startTime: s, period: p}
     $.ajax({
       type: "POST",
       url: "http://localhost:9000/checkin/updateCheckin",
@@ -198,13 +209,16 @@ $( document ).ready(function(){
     $('.checkinBox').change(function(){
       const bool = $(this).is(":checked");
       const id = $(this).attr('id');
-      updateCheckin('checkin', bool, id);
+      const startTime = $(this).attr("data-startTime");
+      const period = $(this).attr("data-period");
+      updateCheckin('checkin', bool, id, startTime, period);
     });
 
     $('.noShowBox').change(function(){
       const bool = $(this).is(":checked");
       const id = $(this).attr('id');
-      updateCheckin('noShow', bool, id);
+      const startTime = $(this).attr("data-startTime");
+      updateCheckin('noShow', bool, id, startTime);
     });
   }
 
