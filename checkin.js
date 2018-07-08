@@ -238,6 +238,7 @@ $( document ).ready(function(){
       url: "http://localhost:9000/checkin/unplannedRoute",
       data: JSON.stringify({'time': time}),
       success: function(data){
+        console.log(data);
         const headers = ['Block Time', 'Shift Length', 'Request', 'Accepted', 'Actual', 'Unplanned Routes', 'Bridge'];
         const drivers = data;
         const counter = data.counter;
