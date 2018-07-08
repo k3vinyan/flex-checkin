@@ -218,7 +218,7 @@ $( document ).ready(function(){
       const bool = $(this).is(":checked");
       const id = $(this).attr('id');
       const startTime = $(this).attr("data-startTime");
-      updateCheckin('noShow', bool, id, startTime);
+      updateCheckin('noShow', bool, id, startTime, period);
     });
   }
 
@@ -239,6 +239,7 @@ $( document ).ready(function(){
       url: "http://localhost:9000/checkin/unplannedRoute",
       data: JSON.stringify({'time': time}),
       success: function(data){
+        console.log(data);
         const headers = ['Block Time', 'Shift Length', 'Request', 'Accepted', 'Actual', 'Unplanned Routes', 'Bridge'];
         const drivers = data;
         const counter = data.counter;
