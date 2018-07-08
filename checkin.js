@@ -94,7 +94,6 @@ $( document ).ready(function(){
         header = "<tr><th><h1>Start Time</h1></th><th><h1>Name</h1></th><th><h1>Checkin</h1></th><th><h1>No Show</h1></th></tr>"
         currentStartTime = data[i].fields.startTime;
       }
-      console.log(data[i].fields.startTime);
       let temp = (data[i].fields.startTime).split(" ");
       let time = temp[0];
       let period = temp[1];
@@ -179,7 +178,6 @@ $( document ).ready(function(){
        url: "http://localhost:9000/checkin",
        data: JSON.stringify(roster),
        success: function(data){
-         console.log(data)
          console.log("request successful!");
          callback(JSON.parse(data));
        },
@@ -218,7 +216,8 @@ $( document ).ready(function(){
       const bool = $(this).is(":checked");
       const id = $(this).attr('id');
       const startTime = $(this).attr("data-startTime");
-      updateCheckin('noShow', bool, id, startTime);
+      const period = $(this).attr("data-period");
+      updateCheckin('noShow', bool, id, startTime, period);
     });
   }
 
@@ -242,11 +241,14 @@ $( document ).ready(function(){
         const headers = ['Block Time', 'Shift Length', 'Request', 'Accepted', 'Actual', 'Unplanned Routes', 'Bridge'];
         const drivers = data;
         const counter = data.counter;
-        for(let i = 0; i < counter; i++){
-          blockArray.push(data[i].blockTime)
-          shiftArray.push(data[i].shiftLength)
-          acceptedArray.push(data[i].accepted)
-          actualArray.push(data[i].isCheckin)
+        for(let i = 1; i < counter; i++){
+          blockArray.push(data[i].blockTime);
+          requestArray.push("");
+          unplannedArray.push("");
+          bridgeArray.push("");
+          shiftArray.push(data[i].shiftLength);
+          acceptedArray.push(data[i].accepted);
+          actualArray.push(data[i].isCheckin);
         }
         let allArray = [blockArray, shiftArray, requestArray, acceptedArray, actualArray, unplannedArray, bridgeArray]
         let newExcel = createExcel(headers);
@@ -272,12 +274,15 @@ $( document ).ready(function(){
 const headers = ['Block Time', 'Shift Length', 'Request', 'Accepted', 'Actual', 'Unplanned Routes', 'Bridge']
 
 function createExcel(headers){
+
   const excel = $JExcel.new();
   excel.set(0,5,undefined,100);
-  const formatHeader = excel.addStyle({border: "none,none,none,thin #551A8B", font: "Calibri 12 #FFFFFF B", fill: "#000000", align: "C C"});
+  excel.set(0, 0, 0, "Unplanned Routes Report");
+  excel.set(0, 0, 1, "Date: " + todayDate());
+  const formatHeader = excel.addStyle({border: "thin,thin,thin,thin #551A8B", font: "Calibri Light 12 #FFFFFF B", fill: "#000000", align: "C C"});
 
-  for(let i=0; i < headers.length; i++){
-    excel.set(0, i, 0, headers[i], formatHeader);
+  for(let i = 0; i < headers.length; i++){
+    excel.set(0, i, 2, headers[i], formatHeader);
     excel.set(0, i, undefined, "auto");
     }
     return excel;
@@ -285,13 +290,27 @@ function createExcel(headers){
 
 //insert data into excel file, must create template first
 function insertDataToExcel(name, excel, arrays){
+  console.log(arrays)
   let e = excel;
-  for(let i = 1; i < arrays.length + 1; i++){
-    for(let j = 1; j < arrays[i - 1].length + 1; j++){
-      e.set(0, i-1, j, arrays[i - 1][j-1], excel.addStyle( {align:"C C"}));
+  let lastRow;
+  for(let i = 3; i < arrays.length + 3; i++){
+    for(let j = 3; j < arrays[i - 3].length + 3; j++){
+      lastRow = j;
+      if(i === 3 || i === 4){
+        e.set(0, i -3, j, arrays[i-3][j - 3], excel.addStyle( {align: " C C", fill: "#D8E0F2", border: "thin, thin, thin, thin #551A8B" }))
+      } else {
+        e.set(0, i - 3, j, arrays[i - 3][j - 3], excel.addStyle( {align:"C C", border: "thin, thin, thin, thin #551A8B" }));
+      }
     }
   }
-
+  lastRow += 1;
+  e.set(0, 0, lastRow, "Total", excel.addStyle( {font: "Calibri Light 12 #FFFFFF B", fill: "#000000"}));
+  e.set(0, 1, lastRow, " ", excel.addStyle( { fill: "#000000"}));
+  e.set(0, 2, lastRow, "=C4 + C" + lastRow, excel.addStyle( {font: "Calibri Light 12 #FFFFFF B", fill: "#000000", align: "C C"} ));
+  e.set(0, 3, lastRow, arrays[3].reduce((a, b) => a + b, 0), excel.addStyle( {font: "Calibri Light 12 #FFFFFF B", fill: "#000000", align: "C C"} ));
+  e.set(0, 4, lastRow, arrays[4].reduce((a, b) => a + b, 0), excel.addStyle( {font: "Calibri Light 12 #FFFFFF B", fill: "#000000", align: "C C"} ));
+  e.set(0, 5, lastRow, "=F4 + F" + lastRow, excel.addStyle( {font: "Calibri Light 12 #FFFFFF B", fill: "#000000", align: "C C"} ));
+  e.set(0, 6, lastRow, "  ", excel.addStyle( { fill: "#000000"}));
   e.generate(name + " " + todayFormat + ".xlsx");
 }
 
@@ -309,5 +328,23 @@ function insertDataToExcel(name, excel, arrays){
 
   return string;
    };
+
+   function todayDate(){
+     let today = new Date();
+     let dd = today.getDate();
+     let mm = today.getMonth()+1; //January is 0!
+     let yyyy = today.getFullYear();
+
+     if(dd<10) {
+       dd = '0'+dd
+     }
+
+     if(mm<10) {
+       mm = '0'+mm
+     }
+
+     today = mm + '/' + dd + '/' + yyyy;
+     return today;
+   }
 
 });

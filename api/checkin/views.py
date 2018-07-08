@@ -24,37 +24,42 @@ def unplannedRoute(request):
         drivers = Driver.objects.all()
         currentTime = ""
         counter = 0
+        block = {}
         for driver in drivers:
-
             time, period = driver.startTime.split(" ")
             hour, min = time.split(":")
             if period == 'pm' and hour != '12':
                 hour = int(hour) + 12
 
             if int(reqHour) <= int(hour):
+
                 if currentTime != driver.startTime:
                     currentTime = driver.startTime;
                     try:
                         driversData[counter] = block
                         counter += 1
+                        print driversData
                     except NameError:
                         print "first block error"
                     militaryTime = str(hour) + ":" + min
                     #old file
                     #block = {'startTime': militaryTime, 'accepted': 1, 'isCheckin': 0, 'isNoShow': 0}
                     block = {'blockTime': driver.startTime + " - " + driver.endTime, 'shiftLength': driver.shiftLength, 'accepted': 1, 'isCheckin': 0, 'isNoShow': 0}
-
                     if driver.isCheckin == True:
                         block['isCheckin'] += 1
                     if driver.isNoShow == True:
                         block['isNoShow'] += 1
                 else:
+                    print driver.startTime
                     block['accepted'] += 1
                     if driver.isCheckin == True:
                         block['isCheckin'] += 1
                     if driver.isNoShow == True:
                         block['isNoShow'] += 1
 
+    driversData[counter] = block
+    #print driversData
+    counter += 1
     driversData['counter'] = counter
     return JsonResponse(driversData)
 
@@ -63,11 +68,9 @@ def update(request):
 
     if request.method == 'POST':
         req = json.loads(request.body)
-
+        time = req['startTime'] + " " + req['period']
         if req['type'] == 'checkin':
             if req['boolean'] == True:
-                d = Driver.objects.get(DPID=req['id'])
-                time = req['startTime'] + " " + req['period']
                 driver = Driver.objects.get(DPID=req['id'], startTime=time)
                 driver.isCheckin = True;
                 driver.isNoShow = False;
